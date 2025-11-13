@@ -1,0 +1,80 @@
+# Strategy Configuration Templates
+# Copy and modify these templates for your own strategies
+
+# Template 1: Conservative Moving Average Crossover
+conservative_ma_crossover:
+  name: "Conservative MA Crossover"
+  description: "Low-risk moving average strategy with tight risk management"
+  timeframe: "1h"
+
+  # Indicator parameters
+  ma_fast: 10
+  ma_slow: 30
+
+  # Risk management
+  risk_per_trade: 0.01  # 1% of capital per trade
+  max_positions: 1
+  stop_loss_pct: 0.02    # 2% stop loss
+  take_profit_pct: 0.04  # 4% take profit (2:1 risk/reward)
+
+# Template 2: Aggressive RSI Mean Reversion
+aggressive_rsi:
+  name: "Aggressive RSI Mean Reversion"
+  description: "High-frequency mean reversion strategy"
+  timeframe: "15m"
+
+  # Indicator parameters
+  rsi_period: 14
+  rsi_oversold: 30
+  rsi_overbought: 70
+
+  # Risk management
+  risk_per_trade: 0.05  # 5% of capital per trade
+  max_positions: 3
+  stop_loss_pct: 0.03    # 3% stop loss
+  take_profit_pct: 0.06  # 6% take profit (2:1 risk/reward)
+
+# Template 3: Balanced Multi-Indicator
+balanced_multi:
+  name: "Balanced Multi-Indicator Strategy"
+  description: "Combines MA and RSI for confirmation"
+  timeframe: "4h"
+
+  # Moving Average
+  ma_fast: 12
+  ma_slow: 26
+
+  # RSI
+  rsi_period: 14
+  rsi_oversold: 35
+  rsi_overbought: 65
+
+  # Risk management
+  risk_per_trade: 0.02  # 2% of capital per trade
+  max_positions: 2
+  stop_loss_pct: 0.025   # 2.5% stop loss
+  take_profit_pct: 0.05  # 5% take profit (2:1 risk/reward)
+
+# Backtest Configuration Template
+backtest_template:
+  start_date: "2023-01-01T00:00:00"
+  end_date: "2024-01-01T00:00:00"
+  initial_capital: 10000
+  commission: 0.001      # 0.1% per trade
+  slippage: 0.0005       # 0.05% slippage
+
+# Exchange Configuration Template
+exchange_template:
+  name: "binance"
+  testnet: true           # Always start with testnet!
+  rate_limit_delay: 1.0   # 1 second between API calls
+
+# Optimization Configuration Template
+optimization_template:
+  method: "genetic"       # Options: grid, genetic, bayesian
+  max_iterations: 100
+  optimization_metric: "sharpe_ratio"  # Options: sharpe_ratio, total_return, profit_factor
+
+  # Parameter ranges to optimize
+  ma_fast_range: [5, 20]
+  ma_slow_range: [20, 50]
