@@ -1,0 +1,120 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+coverage.xml
+*.cover
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Configuration (keep examples)
+config/config.yaml
+config/local.yaml
+!config/config.example.yaml
+
+# Data
+data/*.csv
+data/*.json
+data/*.db
+data/*.sqlite
+!data/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# Cache
+.cache/
+*.cache
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# API Keys (extra safety)
+*key*.json
+*secret*.json
+credentials.json
+
+# OS
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+*.backup
+
+# Distribution / Packaging
+*.whl
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Profiling
+*.prof
+*.lprof
+
+# Documentation builds
+docs/_build/
+site/
+
+# Reports
+reports/
+*.html
+!docs/*.html
