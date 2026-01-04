@@ -566,6 +566,7 @@ MAX_UPLOAD_SIZE=10485760  # 10MB
 
 **Telegram Payload Validation**:
 ```python
+from typing import Optional
 from pydantic import BaseModel, HttpUrl, Field, validator
 
 class TelegramUpdate(BaseModel):
@@ -1450,14 +1451,16 @@ def resolve_agent_conflicts(agent_outputs):
         for agent, output in agent_outputs.items()
     )
     
+    consensus_direction = "bullish" if bullish_score > 0.5 else "bearish"
+    
     # Include dissenting opinions in output
     return {
-        "consensus": "bullish" if bullish_score > 0.5 else "bearish",
+        "consensus": consensus_direction,
         "confidence": abs(bullish_score - 0.5) * 2,
         "dissenting_views": [
             f"{agent}: {output['reasoning']}"
             for agent, output in agent_outputs.items()
-            if output["direction"] != consensus
+            if output["direction"] != consensus_direction
         ]
     }
 ```
