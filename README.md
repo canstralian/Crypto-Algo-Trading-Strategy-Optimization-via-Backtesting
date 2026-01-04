@@ -210,6 +210,7 @@ pre-commit run --all-files
 - [Strategy Development](docs/STRATEGIES.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
 - [User Guide](docs/USER_GUIDE.md)
+- [AI Telegram Bot & Taskade Integration](docs/AI_TELEGRAM_TASKADE_COPILOT_GUIDE.md) - Comprehensive guide for bot integration, troubleshooting, and best practices
 
 ## Security
 
