@@ -210,6 +210,7 @@ pre-commit run --all-files
 - [Strategy Development](docs/STRATEGIES.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
 - [User Guide](docs/USER_GUIDE.md)
+- [CI/CD Security Best Practices](docs/SECURITY_CI_CD.md)
 
 ## Security
 
@@ -219,6 +220,10 @@ pre-commit run --all-files
 - SQL injection prevention
 - CORS configuration
 - Security headers enabled
+- GitHub Actions pinned to commit SHAs for supply chain security
+- Automated secret scanning with TruffleHog
+- Dependency vulnerability scanning with pip-audit and Trivy
+- See [CI/CD Security Guide](docs/SECURITY_CI_CD.md) for more details
 
 ## Contributing
 
