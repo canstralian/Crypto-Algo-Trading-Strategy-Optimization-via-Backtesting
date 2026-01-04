@@ -5,9 +5,9 @@ This is a Python-based cryptocurrency algorithmic trading and backtesting platfo
 ## Code Standards
 
 ### Required Before Each Commit
-- Run `black src/ tests/` to format code (line length: 100)
+- Run `black src/ tests/` to format code
 - Run `isort src/ tests/` to sort imports with Black profile
-- Run `flake8 src/ tests/` to check code quality (max line length: 100)
+- Run `flake8 src/ tests/` to check code quality
 - Run `mypy src/` for type checking
 - Or use `pre-commit run --all-files` to run all checks at once
 
@@ -24,7 +24,7 @@ This is a Python-based cryptocurrency algorithmic trading and backtesting platfo
 - **Run all quality checks**: `pre-commit run --all-files`
 
 ### API Server
-- **Development**: `uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000`
+- **Development**: `uvicorn src.api.main:app --reload` (binds to localhost:8000 by default)
 - **Production**: `gunicorn src.api.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000`
 - **API docs**: http://localhost:8000/docs (Swagger UI) or http://localhost:8000/redoc
 
@@ -139,7 +139,7 @@ python scripts/run_backtest.py --strategy ma_crossover --symbol BTC/USDT --timef
 - **Configuration**: PyYAML, python-dotenv, Pydantic Settings
 
 ## Environment Setup
-1. Python 3.9 or higher required
+1. Python 3.9+ required
 2. Create virtual environment: `python -m venv venv`
 3. Activate: `source venv/bin/activate` (Linux/Mac) or `venv\Scripts\activate` (Windows)
 4. Install dependencies: `pip install -r requirements-dev.txt`
