@@ -567,13 +567,14 @@ MAX_UPLOAD_SIZE=10485760  # 10MB
 **Telegram Payload Validation**:
 ```python
 from typing import Optional
-from pydantic import BaseModel, HttpUrl, Field, validator
+from pydantic import BaseModel, HttpUrl, Field, field_validator
 
 class TelegramUpdate(BaseModel):
     update_id: int
-    message: Optional[TelegramMessage]
+    message: Optional['TelegramMessage'] = None
     
-    @validator('update_id')
+    @field_validator('update_id')
+    @classmethod
     def validate_update_id(cls, v):
         if v < 0:
             raise ValueError('Invalid update_id')
@@ -581,11 +582,12 @@ class TelegramUpdate(BaseModel):
 
 class TelegramMessage(BaseModel):
     message_id: int
-    from_user: TelegramUser
-    photo: Optional[list[PhotoSize]]
+    from_user: dict  # TelegramUser
+    photo: Optional[list[dict]] = None  # List of photo sizes
     text: Optional[str] = Field(None, max_length=4096)
     
-    @validator('text')
+    @field_validator('text')
+    @classmethod
     def sanitize_text(cls, v):
         if v:
             # Remove potentially harmful characters
@@ -1211,9 +1213,9 @@ bandit -r src/
     from pydantic import BaseModel, Field
     
     class ChartAnalysis(BaseModel):
-        trend: str = Field(..., regex="^(bullish|bearish|neutral)$")
+        trend: str = Field(..., pattern="^(bullish|bearish|neutral)$")
         confidence: float = Field(..., ge=0.0, le=1.0)
-        key_levels: list[float] = Field(..., min_items=1, max_items=5)
+        key_levels: list[float] = Field(..., min_length=1, max_length=5)
     ```
 
 - **Slow agent response times**:
