@@ -566,12 +566,13 @@ MAX_UPLOAD_SIZE=10485760  # 10MB
 
 **Telegram Payload Validation**:
 ```python
+from __future__ import annotations
 from typing import Optional
 from pydantic import BaseModel, HttpUrl, Field, field_validator
 
 class TelegramUpdate(BaseModel):
     update_id: int
-    message: Optional['TelegramMessage'] = None
+    message: Optional[TelegramMessage] = None
     
     @field_validator('update_id')
     @classmethod
@@ -1287,6 +1288,10 @@ bandit -r src/
   - Increase timeout values for integration tests
   - Example test fixture:
     ```python
+    import random
+    import numpy as np
+    import pytest
+    
     @pytest.fixture
     def deterministic_random():
         random.seed(42)
