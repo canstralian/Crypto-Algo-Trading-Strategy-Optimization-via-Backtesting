@@ -23,7 +23,7 @@
 
 ## Configuration Overview for Copilot/Codex in Trading Bot Swarm
 - **Testing & linting**: always propose running unit tests, integration tests, and linters when code changes; documentation-only changes can skip.
-- **Code style**: follow project formatters (e.g., `black`, `ruff`, `isort`) and typing via `mypy`; prefer small, composable functions.
+- **Code style**: follow project formatters (`black`, `flake8`, `isort`) and typing via `mypy`; prefer small, composable functions.
 - **Async patterns**: use `asyncio`/`aiohttp`/`httpx` with cancellation handling, timeouts, and context managers; avoid blocking calls in async flows.
 - **Security defaults**: prefer parameterized queries, secret management via env/Taskade vaults, input validation, least privilege for tokens/webhooks.
 - **Logging & observability**: use structured logging, correlation IDs per Telegram message/task, and emit metrics for agent runtimes and errors.
@@ -51,7 +51,7 @@
       validate_inputs: true
     style:
       formatter: black
-      linter: ruff
+      linter: flake8
       typing: mypy
       async_guidelines: "timeouts, cancellation, context managers"
     review:
@@ -70,7 +70,7 @@
     taskade:
       webhook_contract: "telegram_payload -> vision -> market -> momentum -> scenario -> risk -> memory -> summary"
   ```
-- **Key reminder**: Always run or suggest `pytest`/`ruff`/`mypy` for code changes; doc-only edits can omit.
+- **Key reminder**: Always run or suggest `pytest`/`flake8`/`mypy` for code changes; doc-only edits can omit.
 
 ## GitHub Workflow: Lint and Test Automation
 - **Triggers**: `pull_request` (opened, synchronized, reopened) and `push` to `main` and release branches.
@@ -85,19 +85,23 @@
   jobs:
     lint-test:
       runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          python-version: ["3.9", "3.10", "3.11"]
       steps:
         - uses: actions/checkout@v4
         - uses: actions/setup-python@v5
           with:
-            python-version: "3.11"
+            python-version: ${{ matrix.python-version }}
+            cache: 'pip'
         - name: Install dependencies
           run: |
             python -m pip install --upgrade pip
             pip install -r requirements-dev.txt
         - name: Lint
-          run: ruff check src tests
+          run: flake8 src tests
         - name: Type check
-          run: mypy src
+          run: mypy src --ignore-missing-imports
         - name: Unit tests
           run: pytest --maxfail=1 --disable-warnings -q
   ```
@@ -115,16 +119,21 @@
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v4
+          with:
+            fetch-depth: 0  # semantic-release needs full git history
         - uses: actions/setup-node@v4
           with:
             node-version: "20"
         - name: Install semantic-release
-          run: npm install -g semantic-release @semantic-release/git @semantic-release/github @semantic-release/changelog
+          run: |
+            # Pin versions to reduce supply-chain risk
+            npm install -g semantic-release@23.0.0 @semantic-release/git@10.0.1 @semantic-release/github@10.0.2 @semantic-release/changelog@6.0.3
         - name: Run semantic-release
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: semantic-release
   ```
+- **Security Note**: Pin semantic-release packages to specific versions and periodically update them to reduce supply-chain risks from compromised packages.
 - Tag releases with `vMAJOR.MINOR.PATCH`; gate releases on green CI and required reviews.
 
 ## Security and Dependency Scanning
@@ -135,19 +144,29 @@
   on:
     pull_request:
     schedule:
-      - cron: "0 3 * * *"  # daily
+      - cron: "0 3 * * *"  # daily at 3 AM UTC
   jobs:
     security:
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v4
+        - name: Set up Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: "3.11"
+            cache: 'pip'
+        - name: Install dependencies
+          run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements-dev.txt
         - name: Dependency review
           uses: actions/dependency-review-action@v4
         - name: Python vulnerability scan
-          uses: pypa/gh-action-pip-audit@v1.0.8
+          uses: pypa/gh-action-pip-audit@v1
         - name: Secret scan
-          uses: trufflesecurity/trufflehog@v3
+          uses: trufflesecurity/trufflehog@ef6e76c3c4023279497fab4721ffa071a722fd05  # pin to v3.92.4 commit SHA for security
   ```
+- **Security Note**: Pin third-party GitHub Actions to specific commit SHAs (not mutable tags) to prevent supply-chain attacks from compromised upstream repositories.
 
 ## Contributor Guidelines
 - Propose changes via issue + PR; link tasks or tickets.
