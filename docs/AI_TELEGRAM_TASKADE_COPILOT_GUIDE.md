@@ -164,7 +164,7 @@
         - name: Python vulnerability scan
           uses: pypa/gh-action-pip-audit@v1
         - name: Secret scan
-          uses: trufflesecurity/trufflehog@87c8a59420cfea01162ca4585cc9e259c6800967  # pin to commit SHA for security
+          uses: trufflesecurity/trufflehog@ef6e76c3c4023279497fab4721ffa071a722fd05  # pin to v3.92.4 commit SHA for security
   ```
 - **Security Note**: Pin third-party GitHub Actions to specific commit SHAs (not mutable tags) to prevent supply-chain attacks from compromised upstream repositories.
 
