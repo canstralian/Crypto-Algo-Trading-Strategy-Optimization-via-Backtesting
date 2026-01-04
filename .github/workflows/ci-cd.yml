@@ -8,24 +8,52 @@ on:
   release:
     types: [ created ]
 
+permissions:
+  contents: read
+
 jobs:
+  # Secret scanning job - runs first to catch leaked secrets early
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3
+      with:
+        fetch-depth: 0  # Fetch all history for comprehensive scanning
+
+    - name: Run TruffleHog scan
+      uses: trufflesecurity/trufflehog@a633174c3b2242aa1b6f8941d2ad6a99e0305964  # main (2026-01-04)
+      with:
+        path: ./
+        base: ${{ github.event.repository.default_branch }}
+        head: HEAD
+        extra_args: --debug --only-verified
+
   test:
     name: Test Suite
     runs-on: ubuntu-latest
+    needs: secret-scan
+    permissions:
+      contents: read
+      checks: write
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11']
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c  # v4
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Cache pip packages
-      uses: actions/cache@v3
+      uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c  # v3
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
@@ -61,12 +89,21 @@ jobs:
         bandit -r src/ -f json -o bandit-report.json
       continue-on-error: true
 
+    - name: Audit Python dependencies for vulnerabilities
+      uses: pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266  # v1.1.0
+      with:
+        inputs: requirements.txt requirements-dev.txt
+        ignore-vulns: |
+          # Add any known false positives here with justification
+          # Format: GHSA-xxxx-xxxx-xxxx
+      continue-on-error: false  # Fail the build on vulnerabilities
+
     - name: Run tests with pytest
       run: |
         pytest tests/ -v --cov=src --cov-report=xml --cov-report=html --cov-report=term
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457  # v3
       with:
         file: ./coverage.xml
         flags: unittests
@@ -74,7 +111,7 @@ jobs:
 
     - name: Archive test results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5  # v3
       with:
         name: test-results-${{ matrix.python-version }}
         path: |
@@ -85,11 +122,15 @@ jobs:
   security:
     name: Security Scan
     runs-on: ubuntu-latest
+    needs: secret-scan
+    permissions:
+      contents: read
+      security-events: write
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3
 
     - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@22438a435773de8c97dc0958cc0b823c45b064ac  # master (2026-01-04)
       with:
         scan-type: 'fs'
         scan-ref: '.'
@@ -97,32 +138,35 @@ jobs:
         output: 'trivy-results.sarif'
 
     - name: Upload Trivy results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@8dca8a82e2fa1a2c8908956f711300f9c4a4f4f6  # v2
       with:
         sarif_file: 'trivy-results.sarif'
 
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, security]
     if: github.event_name == 'push' || github.event_name == 'release'
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@885d1462b80bc1c1c7f0b00334ad271f09369c55  # v2
 
     - name: Login to Docker Hub
       if: github.event_name == 'release'
-      uses: docker/login-action@v2
+      uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc  # v2
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Extract metadata
       id: meta
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@818d4b7b91585d195f67373fd9cb0332e31a7175  # v4
       with:
         images: |
           ${{ secrets.DOCKER_USERNAME }}/crypto-trading-platform
@@ -134,7 +178,7 @@ jobs:
           type=sha
 
     - name: Build and push
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@0a97817b6ade9f46837855d676c4cca3a2471fc9  # v4
       with:
         context: .
         push: ${{ github.event_name == 'release' }}
@@ -146,14 +190,16 @@ jobs:
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [test, build]
+    needs: [test, security, build]
     if: github.event_name == 'release'
+    permissions:
+      contents: read
     environment:
       name: production
       url: https://api.yourcompany.com
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3
 
     - name: Deploy to production
       run: |
